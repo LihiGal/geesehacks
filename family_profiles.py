@@ -39,14 +39,16 @@ class Geeseling:
         self.savings_amount -= amount
         print(f"Withdrawn ${amount:.2f} from savings. Remaining: ${self.savings_amount:.2f}")
         return True
-
-
-    
+   
 @dataclass
 class MotherGoose:
     username: str
     _password: any
     name: str
+    phone_num: int
+    balance: int
+    interest_rate: list[int,int] 
+
     children_list: Dict[str, Geeseling]
 
     def __init__(self, username: str, _password: any, name: str, children_list: Dict[str, Geeseling] = None):
