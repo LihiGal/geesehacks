@@ -18,7 +18,6 @@ class Geeseling:
         """function to create the login of the geeseling"""
         return self.username == username and self._password == password
     
-class ChildAccount:
     def __init__(self, chequing_amount: float = 0.0, savings_amount: float = 0.0):
         self.chequing_amount = chequing_amount
         self.savings_amount = savings_amount
@@ -99,6 +98,6 @@ if __name__ == "__main__":
         print("log in failed for Child 2.")
     
     # Child Account Transactions
-    child1_account = ChildAccount(chequing_amount=50.0, savings_amount=100.0)
+    child1_account = Geeseling(chequing_amount=50.0, savings_amount=100.0)
     child1_account.withdraw_chequing(20.0)
     child1_account.withdraw_savings(50.0)
