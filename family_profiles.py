@@ -3,9 +3,10 @@ from typing import Dict
 
 """a document organizing the following dataclasses:
 Geeseling,
+ChildAccount,
 MotherGoose,
 ParentAccount
-ChildAccount"""
+"""
 
 @dataclass
 class Geeseling:
@@ -16,6 +17,31 @@ class Geeseling:
     def login(self, username: str, password: any) -> bool:
         """function to create the login of the geeseling"""
         return self.username == username and self._password == password
+    
+class ChildAccount:
+    def __init__(self, chequing_amount: float = 0.0, savings_amount: float = 0.0):
+        self.chequing_amount = chequing_amount
+        self.savings_amount = savings_amount
+
+    def withdraw_chequing(self, amount: float) -> bool:
+        """withdraw from chequing account if sufficient balance"""
+        if amount > self.chequing_amount:
+            print("insufficient funds in chequing")
+            return False
+        self.chequing_amount -= amount
+        print(f"Withdrawn ${amount:.2f} from chequing. Remaining: ${self.chequing_amount:.2f}")
+        return True
+
+    def withdraw_savings(self, amount: float) -> bool:
+        """Withdraw from savings account if sufficient balance."""
+        if amount > self.savings_amount:
+            print("Insufficient funds in savings.")
+            return False
+        self.savings_amount -= amount
+        print(f"Withdrawn ${amount:.2f} from savings. Remaining: ${self.savings_amount:.2f}")
+        return True
+
+
     
 @dataclass
 class MotherGoose:
@@ -71,3 +97,8 @@ if __name__ == "__main__":
         print("child 2 logged in successfully!")
     else:
         print("log in failed for Child 2.")
+    
+    # Child Account Transactions
+    child1_account = ChildAccount(chequing_amount=50.0, savings_amount=100.0)
+    child1_account.withdraw_chequing(20.0)
+    child1_account.withdraw_savings(50.0)
