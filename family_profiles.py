@@ -1,6 +1,12 @@
 from dataclasses import dataclass
 from typing import Dict
 
+"""a document organizing the following dataclasses:
+Geeseling,
+MotherGoose,
+ParentAccount
+ChildAccount"""
+
 @dataclass
 class Geeseling:
     username: str
