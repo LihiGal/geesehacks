@@ -1,8 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional
-from datetime import datetime, timedelta
-import csv
 
 """a document organizing the following dataclasses:
 Geeseling,
@@ -112,7 +110,7 @@ class MotherGoose:
         self.children_list[geeseling].chequing_amount += amount
         self.balance -= amount
 
-    def inc_geeseling_balance(self, child_user: str) -> None:
+    def inc_geeseling_savings(self, child_user: str) -> None:
         self.children_list[child_user].savings = round((1 + self.interest_rate/100) * self.children_list[child_user].savingse, 2)
-        
+
       

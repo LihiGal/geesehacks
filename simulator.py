@@ -1,7 +1,8 @@
 from family_profiles import MotherGoose, Geeseling
 import csv
+from datetime import date
 
-def read_data() -> list[dict,dict]:
+def read_data() -> list[dict,dict,date]:
     #mapping from username to object (Geeseling or MotherGoose)
     geeselings = {}
     mothergeese = {}
@@ -20,6 +21,11 @@ def read_data() -> list[dict,dict]:
             balance = line[5]
             children = line[6].split(",")
             interest_rate = line[7]
+            year = line[8]
+            month = line[7]
+            day = line[6]
+
+            last_date = date(year,month,day)
 
             children_dict = {x for x in children}
 
@@ -47,7 +53,7 @@ def read_data() -> list[dict,dict]:
             if geeseling.mother is mother:
                 mother.children[geeseling.name] = geeseling
     
-    return [geeselings, mothergeese]
+    return [geeselings, mothergeese, last_date]
 
 def geeseling_login(geeselings: dict) -> Geeseling:
     geeselings_passwords = {geeseling.username: geeseling.get_password for geeseling in geeselings}
@@ -138,7 +144,7 @@ def run_mothergoose(mother: MotherGoose) -> None:
         
         print("Success")
 
-def save_data(geeselings: dict, mothergeese: dict) -> None:
+def save_data(geeselings: dict, mothergeese: dict, day: int, year: int, month: int) -> None:
 
     f_geeseling = open("geeselings.txt", "a")
 
@@ -164,7 +170,13 @@ def save_data(geeselings: dict, mothergeese: dict) -> None:
         + children
         + mother.balance + ":"
         + mother.interest_rate + ":"
-        + mother.phone_num
+        + mother.phone_num + ":"
+        + year + ":"
+        + month + ":"
+        + day
+
+        f_mothergeese.write(line)
+
 
     f_mothergeese.close()
 
@@ -174,9 +186,19 @@ if __name__ == "__main__":
     
     geeselings = data[0]
     mothergeese = data[1]
+    last_recorded_date = data[2]
+
+    current_time = date.today()
 
     #log in
     login_as = None
+
+    for mothergoose in mothergeese.values():
+        interest = (current_time - last_recorded_date).days()//mothergoose.interest_rate[0]
+
+        for geeseling in mothergoose.children_list.values():
+            mothergoose.inc_geeseling_saving(geeseling)
+
 
     while login_as is not '1' and login_as is not '2':
         login_as = input("Enter '1' to log in as a Mothergoose, '2' to log in as a geeseling:")
@@ -190,5 +212,5 @@ if __name__ == "__main__":
 
     #save data
     print("Logged out.")
-    save_data(geeselings, mothergeese)
+    save_data(geeselings, mothergeese, current_time.day, current_time.year, current_time.month)
 
