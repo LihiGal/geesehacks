@@ -4,9 +4,7 @@ from typing import Optional
 
 """a document organizing the following dataclasses:
 Geeseling,
-ChildAccount,
-MotherGoose,
-ParentAccount
+MotherGoose
 """
 
 @dataclass
@@ -78,6 +76,7 @@ class MotherGoose:
         self.children_dict = []
         self.interest_rate = interest
         self.children_dict = children_dict
+        self._password = password
 
         if balance is None:
             self.balance = 0
@@ -92,10 +91,9 @@ class MotherGoose:
     def add_child(self, child: Geeseling):
         """add a child to the children list"""
         if child.username in self.children_dict:
-            print("child with username {child.username} already exists")
+            print("child with username" + child.username+ "already exists")
         else:
             self.children_dict[child.username] = child
-            print("added child: {child.name} (username: {child.username})")
 
     def remove_child(self, username: str):
         """remove a child from the children list"""
@@ -111,7 +109,7 @@ class MotherGoose:
         print("Successfully changed interest rate to " + rate + "%!")
 
     def add_to_balance(self, amount: float) -> None:
-        self.balance = round(self.balance + amount, 2)
+        self.balance = amount
         print("Successfully added $" + str(amount) + " to balance!")
     
     def add_to_chequing(self, geeseling: str, amount: float) -> None:

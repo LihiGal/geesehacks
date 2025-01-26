@@ -59,8 +59,6 @@ def read_data() -> list[dict,dict,date]:
     return [geeselings, mothergeese, last_date]
 
 def geeseling_login(geeselings: dict) -> Geeseling:
-    geeselings_passwords = {geeselings[geeseling].username: geeselings[geeseling].get_password for geeseling in geeselings}
-
     is_logged_in = None
 
     while is_logged_in is None:
@@ -74,18 +72,13 @@ def geeseling_login(geeselings: dict) -> Geeseling:
         print("Username or password incorrect. Try again.")
 
 def mothergoose_login(mothergeese: dict) -> MotherGoose:
-    mothergeese_passwords = {{mothergeese.username: mothergeese.get_password for mothergeese in mothergeese}}
-
     is_logged_in = None
 
     while is_logged_in is None:
-        print("\n-------------------------------------------")
-        print(mothergoose.name + "'s account:")
         username = input("Enter username: ")
         password = input("Enter password: ")
-        print("\n-------------------------------------------")
 
-        if username in geeselings and password == mothergeese[username].get_password():
+        if username in mothergeese and password == mothergeese[username].get_password():
             print("Logged in!")
             return mothergeese[username]
         
@@ -120,7 +113,7 @@ def run_geeseling(geeseling: Geeseling) -> None:
         print("Success")
         action = 0
  
-def run_mothergoose(mother: MotherGoose) -> None:
+def run_mothergoose(mother: MotherGoose, geeselings: dict[Geeseling]) -> None:
     MENU = "Menu:\n1: Add child\n2. Set Interest\n3: Add to balance\n4: Logout\nEnter action:"
 
     logout = False
@@ -128,9 +121,11 @@ def run_mothergoose(mother: MotherGoose) -> None:
 
     while not logout:
         for geeseling in mother.children_dict.values():
+            print("\n-------------------------------------------")
             print(geeseling.name + "'s account:")
             print("Chequing: " + str(geeseling.get_chequing()))
             print("Savings: " + str(geeseling.get_savings()))
+            print("-------------------------------------------")
 
         while action is not '1' and action is not '2' and action is not '3' and action is not '4':
             action = input(MENU)
@@ -140,13 +135,15 @@ def run_mothergoose(mother: MotherGoose) -> None:
             password = input("New geeseling password: ")
             name = input("New geeseling name: ")
             
-            new_geeseling = Geeseling(username=username, password=password, name=name, mother=mother)
+            new_geeseling = Geeseling(username=username, password=password, name=name, mother=mother, chequing=0, savings=0)
             mother.add_child(new_geeseling)
+            mother.children_dict[new_geeseling.username] = new_geeseling
+            geeselings[new_geeseling.username] = new_geeseling
         elif action == '2':
             amount = input("Set interest (%): ")
             frequency = input("Set compounding frequency (days): ")
 
-            mother.set_interest_rate(amount=amount, frequency=frequency)
+            mother.set_interest_rate(rate=amount, frequency=frequency)
         elif action == '3':
             amount = input("Add amount: ")
             mother.add_to_balance(amount=amount)
@@ -154,6 +151,7 @@ def run_mothergoose(mother: MotherGoose) -> None:
             logout = True
         
         print("Success")
+        action=0
 
 def save_data(geeselings: dict, mothergeese: dict, day: int, year: int, month: int) -> None:
 
@@ -167,9 +165,14 @@ def save_data(geeselings: dict, mothergeese: dict, day: int, year: int, month: i
 
     with open("mothergeese.txt", "w") as f_mothergeese:
         for mother in mothergeese.values():
-            children = str([mother.children_dict[x].username + ":" for x in mother.children_dict])
+            line = mother.username + ":"+ str(mother.get_password()) + ":"+ mother.name + ":" + str(mother.phone_num) + ":" + str(mother.balance) + ":"
+            
+            for child_user in mother.children_dict:
+                line += child_user + "="
+            
+            line = line[0:-1] + ":"
 
-            line = mother.username + ":"+ str(mother.get_password()) + ":"+ mother.name + ":"+ children+ mother.balance + ":"+ mother.interest_rate + ":"+ mother.phone_num + ":"+ year + ":"+ month + ":"+ day
+            line += str(mother.interest_rate[0]) + ":" + str(mother.interest_rate[1]) + ":"+ str(year) + ":"+ str(month) + ":"+ str(day)
 
             f_mothergeese.write(line+"\n")
     f_mothergeese.close()
@@ -202,9 +205,10 @@ if __name__ == "__main__":
         run_geeseling(geeseling)
     else:
         mothergoose = mothergoose_login(mothergeese)
-        run_mothergoose(mothergoose)
+        run_mothergoose(mothergoose, geeselings)
 
     #save data
+
     print("Logged out.")
     save_data(geeselings, mothergeese, current_time.day, current_time.year, current_time.month)
 
