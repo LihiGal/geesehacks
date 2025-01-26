@@ -14,16 +14,18 @@ class Geeseling:
     username: str
     _password: any
     name: str
-    chequing_amount: float
-    savings_amount: float
+    chequing_amount: Optional[float]
+    savings_amount: Optional[float]
     mother: MotherGoose
 
-    def __init__(self, mother: MotherGoose):
-        self.chequing_amount = chequing_amount
-        self.savings_amount = savings_amount
+    def __init__(self, username: str, password: any, name: str, chequing: Optional[float], savings: Optional[float], mother: MotherGoose):
+        self.chequing_amount = chequing
+        self.savings_amount = savings
+        self.username = username
+        self.set_password(password)
+        self.name = name
         self.mother = mother
-        chequing_amount = 0
-        savings_amount = 0
+
 
     def get_chequing(self) -> float:
         return self.chequing_amount
@@ -61,21 +63,27 @@ class MotherGoose:
     username: str
     _password: any
     name: str
-    children_list: dict[str, Geeseling]
+    children_dict: dict[str, Geeseling]
     balance: float
     interest_rate: Optional[list[int,int]] # [interest rate as percent, frequency of compouding] for the geeslings' savings
     phone_num: int
 
-    def __init__(self, username: str, password: str, name: str, phone_num: int) -> None:
+    def __init__(self, username: str, password: str, name: str, phone_num: int, balance: Optional[float], interest: Optional[list[int,int]], children_dict: Optional[dict[str, Geeseling]]) -> None:
         """
         Preconditions:
         - ":" not in username & "," not in username
         """
         self.username = username
         self.name = name
-        self.children_list = []
-        self.balance = 0
-        self.interest_rate = []
+        self.children_dict = []
+        self.interest_rate = interest
+        self.children_dict = children_dict
+
+        if balance is None:
+            self.balance = 0
+        else:
+            self.balance = balance
+        
         self.phone_num = phone_num
 
     def get_password(self) -> str:
@@ -83,16 +91,16 @@ class MotherGoose:
     
     def add_child(self, child: Geeseling):
         """add a child to the children list"""
-        if child.username in self.children_list:
+        if child.username in self.children_dict:
             print("child with username {child.username} already exists")
         else:
-            self.children_list[child.username] = child
+            self.children_dict[child.username] = child
             print("added child: {child.name} (username: {child.username})")
 
     def remove_child(self, username: str):
         """remove a child from the children list"""
-        if username in self.children_list:
-            removed_child = self.children_list.pop(username)
+        if username in self.children_dict:
+            removed_child = self.children_dict.pop(username)
             print("removed child: {removed_child.name} (username: {username})")
         else:
             print("no child with username {username} found.") 
@@ -107,10 +115,13 @@ class MotherGoose:
         print("Successfully added $" + str(amount) + " to balance!")
     
     def add_to_chequing(self, geeseling: str, amount: float) -> None:
-        self.children_list[geeseling].chequing_amount += amount
+        self.children_dict[geeseling].chequing_amount += amount
         self.balance -= amount
 
     def inc_geeseling_savings(self, child_user: str) -> None:
-        self.children_list[child_user].savings = round((1 + self.interest_rate/100) * self.children_list[child_user].savingse, 2)
+        amount1 = self.interest_rate[0]/100 * self.children_dict[child_user].savings_amount
+        amount = round((1 + self.interest_rate[0]/100) * self.children_dict[child_user].savings_amount, 2)
+        self.balance -= amount1
+        self.children_dict[child_user].savings = amount
 
       

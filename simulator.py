@@ -12,51 +12,54 @@ def read_data() -> list[dict,dict,date]:
         reader = csv.reader(f)
 
         for user in reader:
+            line = str(user)[2:-2]
             line = line.split(":") #username shouldn't have ":"
             
-            username = line[1]
-            password = line[2]
-            name = line[3]
-            phone_num = line[4]
-            balance = line[5]
-            children = line[6].split(",")
-            interest_rate = line[7]
-            year = line[8]
-            month = line[7]
-            day = line[6]
-
+            username = line[0]
+            password = line[1]
+            name = line[2]
+            phone_num = line[3]
+            balance = line[4]
+            children = line[5].split("=")
+            interest_rate = line[6]
+            frequency = line[7]
+            year = int(line[8])
+            month = int(line[9])
+            day = int(line[10])
             last_date = date(year,month,day)
 
-            children_dict = {x for x in children}
+            children = {x: None for x in children}
 
-            mothergeese[username] = MotherGoose(username=username, password=password, name=name, phone_num=phone_num, 
-                                            balance=balance, interest_rate=interest_rate, children=children_dict)
+            mother_obj =  MotherGoose(username=username, password=password, name=name, phone_num=int(phone_num), balance=float(balance), interest=[int(interest_rate),int(frequency)], children_dict=children)
             
+            mothergeese[username] = mother_obj
+
     with open('geeselings.txt') as f:
         reader = csv.reader(f)
 
         for user in reader:
+            line = str(user)[2:-2]
             line = line.split(":") #username shouldn't have ":"
             
-            username = line[1]
-            password = line[2]
-            name = line[3]
-            chequing_amount = line[4]
-            savings_amount = line[5]
-            mother = line[6]
+            username = line[0]
+            password = line[1]
+            name = line[2]
+            chequing_amount = line[3]
+            savings_amount = line[4]
+            mother = line[5]
 
-            geeselings[username] = Geeseling(username=username, password=password, name=name, chequing_amount=chequing_amount,
-                                        savings_amount=savings_amount, mother=mothergeese[mother])
+            geeselings[username] = Geeseling(username=username, password=password, name=name, chequing=float(chequing_amount),
+                                        savings=float(savings_amount), mother=mothergeese[mother])
 
     for mother in mothergeese.values():
         for geeseling in geeselings.values():
             if geeseling.mother is mother:
-                mother.children[geeseling.name] = geeseling
-    
+                mother.children_dict[geeseling.username] = geeselings[geeseling.username]
+
     return [geeselings, mothergeese, last_date]
 
 def geeseling_login(geeselings: dict) -> Geeseling:
-    geeselings_passwords = {geeseling.username: geeseling.get_password for geeseling in geeselings}
+    geeselings_passwords = {geeselings[geeseling].username: geeselings[geeseling].get_password for geeseling in geeselings}
 
     is_logged_in = None
 
@@ -64,7 +67,7 @@ def geeseling_login(geeselings: dict) -> Geeseling:
         username = input("Enter username: ")
         password = input("Enter password: ")
 
-        if username in geeselings and password in geeselings_passwords:
+        if username in geeselings and password == geeselings[username].get_password():
             print("Logged in!")
             return geeselings[username]
         
@@ -76,10 +79,13 @@ def mothergoose_login(mothergeese: dict) -> MotherGoose:
     is_logged_in = None
 
     while is_logged_in is None:
+        print("\n-------------------------------------------")
+        print(mothergoose.name + "'s account:")
         username = input("Enter username: ")
         password = input("Enter password: ")
+        print("\n-------------------------------------------")
 
-        if username in geeselings and password in mothergeese_passwords:
+        if username in geeselings and password == mothergeese[username].get_password():
             print("Logged in!")
             return mothergeese[username]
         
@@ -92,22 +98,27 @@ def run_geeseling(geeseling: Geeseling) -> None:
     action = None
 
     while not logout:
+        print("\n-------------------------------------------")
+        print(geeseling.name + "'s account:")
         print("Chequing: " + str(geeseling.get_chequing()))
         print("Savings: " + str(geeseling.get_savings()))
+        print("-------------------------------------------")
 
         while action is not '1' and action is not '2' and action is not '3':
             action = input(MENU)
 
         if action == '1':
             amount = input("Withdraw amount: ")
-            geeseling.withdraw_chequing(amount)
+            geeseling.withdraw_chequing(float(amount))
         elif action == '2':
             amount = input("Withdraw amount: ")
-            geeseling.withdraw_savings(amount)
+            geeseling.withdraw_savings(float(amount))
         else:
             logout = True
+            return
 
         print("Success")
+        action = 0
  
 def run_mothergoose(mother: MotherGoose) -> None:
     MENU = "Menu:\n1: Add child\n2. Set Interest\n3: Add to balance\n4: Logout\nEnter action:"
@@ -116,7 +127,7 @@ def run_mothergoose(mother: MotherGoose) -> None:
     action = None
 
     while not logout:
-        for geeseling in mother.children_list.values():
+        for geeseling in mother.children_dict.values():
             print(geeseling.name + "'s account:")
             print("Chequing: " + str(geeseling.get_chequing()))
             print("Savings: " + str(geeseling.get_savings()))
@@ -146,38 +157,21 @@ def run_mothergoose(mother: MotherGoose) -> None:
 
 def save_data(geeselings: dict, mothergeese: dict, day: int, year: int, month: int) -> None:
 
-    f_geeseling = open("geeselings.txt", "a")
+    with open("geeselings.txt", "w") as f_geeseling:
+        for geeseling in geeselings.values():
+            line = geeseling.username + ":" + str(geeseling.get_password()) + ":" + geeseling.name + ":"+ str(geeseling.chequing_amount) + ":"+ str(geeseling.savings_amount) + ":"+ str(geeseling.mother.username)
 
-    f_mothergeese = open("mothergeese.txt", "a")
-
-    for geeseling in geeselings.values():
-        line = geeseling.username + ":"
-        + str(geeseling.get_password()) + ":"
-        + geeseling.name + ":"
-        + str(geeseling.chequing_amount) + ":"
-        + str(geeseling.saving_amount) + ":"
-        + str(geeseling.mother.username)
-
-        f_geeseling.write(line)
+            f_geeseling.write(line+"\n")
+    
     f_geeseling.close()
 
-    for mother in mothergeese.values():
-        children = str([mother.children_list[x].username + ":" for x in mother.children_list])
+    with open("mothergeese.txt", "w") as f_mothergeese:
+        for mother in mothergeese.values():
+            children = str([mother.children_dict[x].username + ":" for x in mother.children_dict])
 
-        line = mother.username + ":"
-        + str(mother.get_password()) + ":"
-        + mother.name + ":"
-        + children
-        + mother.balance + ":"
-        + mother.interest_rate + ":"
-        + mother.phone_num + ":"
-        + year + ":"
-        + month + ":"
-        + day
+            line = mother.username + ":"+ str(mother.get_password()) + ":"+ mother.name + ":"+ children+ mother.balance + ":"+ mother.interest_rate + ":"+ mother.phone_num + ":"+ year + ":"+ month + ":"+ day
 
-        f_mothergeese.write(line)
-
-
+            f_mothergeese.write(line+"\n")
     f_mothergeese.close()
 
 if __name__ == "__main__":
@@ -194,14 +188,14 @@ if __name__ == "__main__":
     login_as = None
 
     for mothergoose in mothergeese.values():
-        interest = (current_time - last_recorded_date).days()//mothergoose.interest_rate[0]
+        interest = (current_time - last_recorded_date).days//mothergoose.interest_rate[0]
 
-        for geeseling in mothergoose.children_list.values():
-            mothergoose.inc_geeseling_saving(geeseling)
+        for geeseling in mothergoose.children_dict.values():
+            mothergoose.inc_geeseling_savings(geeseling.username)
 
 
     while login_as is not '1' and login_as is not '2':
-        login_as = input("Enter '1' to log in as a Mothergoose, '2' to log in as a geeseling:")
+        login_as = input("Enter '1' to log in as a geeseling, '2' to log in as mother goose:")
     
     if login_as == '1':
         geeseling = geeseling_login(geeselings)
