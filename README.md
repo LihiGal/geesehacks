@@ -1,6 +1,6 @@
 A family money management app to help parents teach kids financial literacy.
 
-Login as a parent("mothergoose") or child("geeseling"). (Use logins prov
+Login as a parent("mothergoose") or child("geeseling").
 
 Kids are able to track their savings and chequing accounts, monitored by parents.  
 
